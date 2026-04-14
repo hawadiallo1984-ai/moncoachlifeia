@@ -371,7 +371,7 @@ async function sendMsg(){
   isTyping=true;
   var typing=addMsg('Luna écrit...','typing');
   try{
-    var res=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1000,system:systemPrompt,messages:conversationHistory})});
+    var res=await fetch('https://api.headers:{'Content-Type':'application/json','x-api-key':'COLLE_TA_CLE_ICI','anthropic-version':'2023-06-01'}.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1000,system:systemPrompt,messages:conversationHistory})});
     var data=await res.json();
     typing.remove();
     var reply=data.content&&data.content[0]?data.content[0].text:"Je suis là pour toi. Qu'est-ce qui t'a amené à me parler aujourd'hui ?";
