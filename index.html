@@ -390,7 +390,7 @@ async function sendMsg(){
   try{
     var res=await fetch('https://api.anthropic.com/v1/messages',{
       method:'POST',
-      headers:{'Content-Type':'application/json','x-api-key':'REMPLACE_PAR_CLE_ANTHROPIC','anthropic-version':'2023-06-01'},
+      headers:{'Content-Type':'application/json','x-api-key':'sk-ant-api03-v4z...2AAA','anthropic-version':'2023-06-01'},
       body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1000,system:systemPrompt,messages:conversationHistory})
     });
     var data=await res.json();
