@@ -40,7 +40,7 @@
       document.getElementById('user-name').textContent = user.displayName || user.email;
       document.getElementById('user-avatar').textContent = (user.displayName || user.email)[0].toUpperCase();
       document.getElementById('btn-login').style.display = 'none';
-      document.getElementById('login-wall').style.display = 'none';
+      //login-wall hidden on auth
       document.getElementById('coaching-content').style.display = 'block';
     } else {
       document.getElementById('auth-bar').style.display = 'none';
@@ -425,10 +425,11 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,san
 
 <script>
 var stripe=Stripe('pk_live_51Ke3nzHFd4Whm7LgG7GbE5xdOjL2wDxNWTwg9mlDkPOjOq5fNKBDfmp5wi8aYdAMV8qtxMoHpJxYbUZEWKA7WySa00MNYQTXmb');
-var ANTHROPIC_KEY='sk-ant-api03-v4z...2AAA';
+var ANTHROPIC_KEY='REMPLACE_PAR_CLE_ANTHROPIC';
 var simCount=parseInt(localStorage.getItem('simCount')||'0');
 
 function showPage(p){
+  if(!document.getElementById("page-"+p))return;
   document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));
   document.getElementById('page-'+p).classList.add('active');
 }
