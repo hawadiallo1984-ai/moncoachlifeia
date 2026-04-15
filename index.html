@@ -5,591 +5,482 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Mon Coach Life IA</title>
 <script src="https://js.stripe.com/v3/"></script>
-<script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-  import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-  import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
-
-  const firebaseConfig = {
-    apiKey: "AIzaSyB5sMvlXLfLLgDLylpFQuUVnBgFpCFGi74",
-    authDomain: "moncoachlifeia.firebaseapp.com",
-    projectId: "moncoachlifeia",
-    storageBucket: "moncoachlifeia.firebasestorage.app",
-    messagingSenderId: "643285718787",
-    appId: "1:643285718787:web:66c6f7291b609e9047bb36"
-  };
-
-  const app = initializeApp(firebaseConfig);
-  const auth = getAuth(app);
-  const db = getFirestore(app);
-  const provider = new GoogleAuthProvider();
-
-  window.firebaseAuth = auth;
-  window.firebaseDB = db;
-  window.googleProvider = provider;
-  window.signInWithPopup = signInWithPopup;
-  window.signOut = signOut;
-  window.onAuthStateChanged = onAuthStateChanged;
-  window.doc = doc;
-  window.setDoc = setDoc;
-  window.getDoc = getDoc;
-
-  onAuthStateChanged(auth, (user) => {
-    if (user) {
-      document.getElementById('auth-bar').style.display = 'flex';
-      document.getElementById('user-name').textContent = user.displayName || user.email;
-      document.getElementById('user-avatar').textContent = (user.displayName || user.email)[0].toUpperCase();
-      document.getElementById('btn-login').style.display = 'none';
-      //login-wall hidden on auth
-      document.getElementById('coaching-content').style.display = 'block';
-    } else {
-      document.getElementById('auth-bar').style.display = 'none';
-      document.getElementById('btn-login').style.display = 'flex';
-    }
-  });
-</script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 :root{
 --blue:#185FA5;--blue-light:#E6F1FB;--blue-dark:#0C447C;
 --green:#0F6E56;--green-light:#E1F5EE;
---gold:#854F0B;--gold-light:#FAEEDA;--gold-mid:#EF9F27;
---purple:#534AB7;--purple-light:#EEEDFE;
---bg:#ffffff;--bg2:#f7f8fa;--bg3:#f0f2f5;
+--gold:#EF9F27;--gold-light:#FAEEDA;--gold-dark:#854F0B;
+--bg:#fff;--bg2:#f7f8fa;--bg3:#f0f2f5;
 --text:#1a1a1a;--text2:#555;--text3:#888;
---border:#e8eaed;--radius:12px;--radius-sm:8px;
+--border:#e8eaed;--r:12px;--rs:8px;
 }
-body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;background:var(--bg3);color:var(--text);line-height:1.6;font-size:15px}
-.app{max-width:820px;margin:0 auto;background:var(--bg);min-height:100vh;box-shadow:0 0 40px rgba(0,0,0,0.08)}
-.nav{display:flex;align-items:center;justify-content:space-between;padding:1rem 1.5rem;border-bottom:1px solid var(--border);background:var(--bg);position:sticky;top:0;z-index:10;flex-wrap:wrap;gap:8px}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg3);color:var(--text);font-size:15px;line-height:1.6}
+.app{max-width:820px;margin:0 auto;background:var(--bg);min-height:100vh;box-shadow:0 0 40px rgba(0,0,0,.08)}
+nav{display:flex;align-items:center;justify-content:space-between;padding:1rem 1.5rem;border-bottom:1px solid var(--border);background:var(--bg);position:sticky;top:0;z-index:99;flex-wrap:wrap;gap:8px}
 .logo{font-size:16px;font-weight:600}.logo span{color:var(--blue)}
 .nav-right{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
-.nav-btn{background:transparent;border:1px solid var(--border);border-radius:var(--radius-sm);padding:7px 13px;font-size:13px;cursor:pointer;color:var(--text)}
-.nav-btn:hover{background:var(--bg2)}
-.nav-btn.primary{background:var(--blue);color:#fff;border-color:var(--blue)}
-.btn-google{display:flex;align-items:center;gap:8px;background:#fff;border:1px solid var(--border);border-radius:var(--radius-sm);padding:8px 14px;font-size:13px;cursor:pointer;font-weight:600}
-.btn-google:hover{background:var(--bg2)}
-.auth-bar{display:none;align-items:center;gap:10px}
-.user-avatar{width:32px;height:32px;border-radius:50%;background:var(--blue-light);color:var(--blue-dark);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px}
-.user-name{font-size:13px;color:var(--text2);font-weight:500}
-.btn-logout{background:transparent;border:none;font-size:12px;color:var(--text3);cursor:pointer;text-decoration:underline}
-.page{display:none;padding:2rem 1.5rem}.page.active{display:block}
-.badge-pill{display:inline-block;background:var(--blue-light);color:var(--blue-dark);font-size:12px;padding:5px 14px;border-radius:20px;margin-bottom:1.2rem;font-weight:600}
-.hero-app{text-align:center;padding:3.5rem 1rem 2.5rem}
-.hero-app h1{font-size:2.2rem;font-weight:700;line-height:1.2;margin-bottom:1rem}
-.hero-app h1 span{color:var(--blue)}
-.hero-app p{color:var(--text2);font-size:1rem;max-width:480px;margin:0 auto 2rem;line-height:1.75}
-.btn-primary{background:var(--blue);color:#fff;border:none;padding:13px 28px;border-radius:var(--radius);font-size:15px;font-weight:600;cursor:pointer;margin:0 5px 8px}
-.btn-primary:hover{background:var(--blue-dark)}
-.btn-outline{background:transparent;color:var(--text);border:1px solid var(--border);padding:13px 28px;border-radius:var(--radius);font-size:15px;cursor:pointer;margin:0 5px 8px}
-.stats-row{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:2rem 0}
-.stat{background:var(--bg2);border-radius:var(--radius-sm);padding:1.1rem;text-align:center;border:1px solid var(--border)}
-.stat-n{font-size:22px;font-weight:700}.stat-l{font-size:12px;color:var(--text3);margin-top:3px}
-.features-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px;margin:1.5rem 0}
-.feat-card{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);padding:1.2rem}
-.feat-icon{width:36px;height:36px;border-radius:var(--radius-sm);display:flex;align-items:center;justify-content:center;margin-bottom:10px}
-.feat-card h3{font-size:14px;font-weight:600;margin-bottom:5px}
-.feat-card p{font-size:13px;color:var(--text2);line-height:1.6}
-.section-title{font-size:20px;font-weight:700;margin-bottom:0.4rem}
-.section-sub{font-size:14px;color:var(--text2);margin-bottom:1.5rem;line-height:1.7}
-.divider{border:none;border-top:1px solid var(--border);margin:2rem 0}
-.plans-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(175px,1fr));gap:12px;margin-bottom:1.5rem}
-.plan-card{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);padding:1.3rem;position:relative}
-.plan-card.featured{border:2px solid var(--blue)}
-.plan-card.premium{border:2px solid var(--gold-mid);background:linear-gradient(135deg,#fffdf7,#fff9ee)}
-.plan-badge{display:inline-block;font-size:11px;background:var(--blue-light);color:var(--blue-dark);padding:3px 10px;border-radius:20px;margin-bottom:10px;font-weight:600}
-.plan-badge.gold{background:var(--gold-light);color:var(--gold)}
-.plan-name{font-size:15px;font-weight:700;margin-bottom:5px}
-.plan-price{font-size:26px;font-weight:700;line-height:1;margin-bottom:4px}
-.plan-price span{font-size:13px;color:var(--text3);font-weight:400}
-.plan-price.gold-price{color:var(--gold)}
-.plan-ul{list-style:none;margin-top:1rem;display:flex;flex-direction:column;gap:6px}
-.plan-ul li{font-size:12px;color:var(--text2);display:flex;gap:6px;align-items:flex-start}
-.check{color:var(--green)}
-.check.gold{color:var(--gold)}
-.plan-btn{width:100%;margin-top:1.2rem;background:var(--blue);color:#fff;border:none;padding:11px;border-radius:var(--radius-sm);font-size:13px;cursor:pointer;font-weight:600}
-.plan-btn.free{background:transparent;color:var(--blue);border:1px solid var(--blue)}
-.plan-btn.gold-btn{background:var(--gold-mid);color:#fff;border:none}
-.plan-btn.gold-btn:hover{background:var(--gold)}
-.stripe-note{display:flex;align-items:center;gap:8px;background:var(--bg2);border-radius:var(--radius-sm);padding:10px 14px;font-size:12px;color:var(--text3);margin-bottom:1.5rem;border:1px solid var(--border)}
-.coaching-wrap{background:var(--bg2);border-radius:var(--radius);padding:1.5rem;margin-bottom:1.5rem;border:1px solid var(--border)}
-.coaching-header{display:flex;align-items:center;gap:10px;margin-bottom:1.2rem}
-.coach-avatar-img{width:42px;height:42px;border-radius:50%;background:var(--blue-light);display:flex;align-items:center;justify-content:center;border:2px solid var(--blue)}
-.coach-name{font-size:14px;font-weight:600}.coach-status{font-size:12px;color:var(--green)}
-.messages{display:flex;flex-direction:column;gap:10px;margin-bottom:1rem;min-height:240px;max-height:360px;overflow-y:auto;padding:4px 0}
-.msg{max-width:82%;padding:11px 15px;border-radius:var(--radius);font-size:14px;line-height:1.65}
-.msg.coach{background:var(--bg);border:1px solid var(--border);align-self:flex-start}
-.msg.user{background:var(--blue);color:#fff;align-self:flex-end}
-.msg.typing{background:var(--bg);border:1px solid var(--border);align-self:flex-start;color:var(--text3)}
-.input-row{display:flex;gap:8px}
-.input-row input{flex:1;padding:11px 14px;border-radius:var(--radius);border:1px solid var(--border);font-size:14px;outline:none;background:var(--bg);color:var(--text)}
-.input-row input:focus{border-color:var(--blue)}
-.input-row button{background:var(--blue);color:#fff;border:none;padding:11px 20px;border-radius:var(--radius);cursor:pointer;font-size:14px;font-weight:600}
-.quick-btns{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px}
-.quick-btn{background:var(--bg);border:1px solid var(--border);border-radius:20px;padding:6px 13px;font-size:12px;cursor:pointer;color:var(--text2)}
-.quick-btn:hover{background:var(--blue-light);border-color:var(--blue);color:var(--blue-dark)}
-.tab-bar{display:flex;border-bottom:1px solid var(--border);margin-bottom:1.5rem;overflow-x:auto}
-.tab{padding:11px 16px;font-size:13px;cursor:pointer;color:var(--text3);border:none;background:none;border-bottom:2px solid transparent;font-weight:500;white-space:nowrap}
-.tab.active{color:var(--blue);border-bottom:2px solid var(--blue);font-weight:600}
-.journal-card{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);padding:1.3rem;margin-bottom:12px}
-.journal-card h3{font-size:14px;font-weight:600;margin-bottom:8px}
-.journal-card textarea{width:100%;border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px 12px;font-size:13px;resize:vertical;min-height:80px;font-family:inherit;background:var(--bg2);outline:none}
-.journal-card button{margin-top:10px;background:var(--blue);color:#fff;border:none;padding:9px 18px;border-radius:var(--radius-sm);font-size:13px;cursor:pointer;font-weight:600}
-.progress-section{margin-bottom:1.4rem}
-.progress-label{display:flex;justify-content:space-between;font-size:13px;color:var(--text2);margin-bottom:7px}
-.progress-bar{height:8px;background:var(--bg3);border-radius:4px;overflow:hidden}
-.progress-fill{height:100%;background:var(--blue);border-radius:4px}
-.badge-row{display:flex;flex-wrap:wrap;gap:8px;margin-top:1rem}
-.badge-item{background:var(--blue-light);color:var(--blue-dark);border-radius:20px;padding:6px 13px;font-size:12px;font-weight:600}
-.badge-item.locked{background:var(--bg2);color:var(--text3);border:1px solid var(--border)}
-.testi{background:var(--bg2);border-radius:0 var(--radius) var(--radius) 0;padding:1.3rem;border-left:3px solid var(--blue);margin-bottom:12px}
+.nb{background:transparent;border:1px solid var(--border);border-radius:var(--rs);padding:7px 13px;font-size:13px;cursor:pointer;color:var(--text)}
+.nb:hover{background:var(--bg2)}
+.nb.active{background:var(--blue);color:#fff;border-color:var(--blue)}
+.bg{display:flex;align-items:center;gap:8px;background:#fff;border:1px solid var(--border);border-radius:var(--rs);padding:8px 14px;font-size:13px;cursor:pointer;font-weight:600}
+.bg:hover{background:var(--bg2)}
+.abar{display:none;align-items:center;gap:8px}
+.av{width:30px;height:30px;border-radius:50%;background:var(--blue-light);color:var(--blue-dark);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px}
+.aname{font-size:13px;color:var(--text2)}
+.alo{background:none;border:none;font-size:12px;color:var(--text3);cursor:pointer;text-decoration:underline}
+
+/* PAGES */
+.page{display:none;padding:2rem 1.5rem;animation:fadeIn .2s}
+.page.on{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
+
+/* HERO */
+.hero{text-align:center;padding:3.5rem 1rem 2.5rem}
+.pill{display:inline-block;background:var(--blue-light);color:var(--blue-dark);font-size:12px;padding:5px 14px;border-radius:20px;margin-bottom:1.2rem;font-weight:600}
+.hero h1{font-size:2.2rem;font-weight:700;line-height:1.2;margin-bottom:1rem}
+.hero h1 span{color:var(--blue)}
+.hero p{color:var(--text2);max-width:480px;margin:0 auto 2rem;line-height:1.75}
+.bp{background:var(--blue);color:#fff;border:none;padding:13px 28px;border-radius:var(--r);font-size:15px;font-weight:600;cursor:pointer;margin:0 5px 8px}
+.bp:hover{background:var(--blue-dark)}
+.bo{background:transparent;color:var(--text);border:1px solid var(--border);padding:13px 28px;border-radius:var(--r);font-size:15px;cursor:pointer;margin:0 5px 8px}
+.bo:hover{background:var(--bg2)}
+
+/* STATS */
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:2rem 0}
+.stat{background:var(--bg2);border-radius:var(--rs);padding:1rem;text-align:center;border:1px solid var(--border)}
+.sn{font-size:22px;font-weight:700}.sl{font-size:12px;color:var(--text3);margin-top:3px}
+
+/* FEATURES */
+.fg{display:grid;grid-template-columns:repeat(auto-fit,minmax(185px,1fr));gap:12px;margin:1.5rem 0}
+.fc{background:var(--bg);border:1px solid var(--border);border-radius:var(--r);padding:1.2rem}
+.fi{width:36px;height:36px;border-radius:var(--rs);display:flex;align-items:center;justify-content:center;margin-bottom:10px}
+.fc h3{font-size:14px;font-weight:600;margin-bottom:5px}
+.fc p{font-size:13px;color:var(--text2);line-height:1.6}
+hr{border:none;border-top:1px solid var(--border);margin:2rem 0}
+
+/* TESTIMONIALS */
+.testi{background:var(--bg2);border-radius:0 var(--r) var(--r) 0;padding:1.3rem;border-left:3px solid var(--blue);margin-bottom:12px}
 .testi p{font-size:14px;line-height:1.7;font-style:italic;margin-bottom:8px}
-.testi-author{font-size:12px;color:var(--text3);font-weight:600}
-.login-wall{display:none;text-align:center;padding:3rem 1.5rem;background:var(--bg2);border-radius:var(--radius);border:1px solid var(--border);margin:1rem 0}
-.login-wall h2{font-size:18px;font-weight:700;margin-bottom:0.5rem}
-.login-wall p{font-size:14px;color:var(--text2);margin-bottom:1.5rem;line-height:1.7}
-.tool-card{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);padding:1.3rem;margin-bottom:12px}
-.tool-card h3{font-size:15px;font-weight:600;margin-bottom:6px}
-.tool-card p{font-size:13px;color:var(--text2);margin-bottom:12px;line-height:1.6}
-.tool-card input,.tool-card select,.tool-card textarea{width:100%;padding:9px 12px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:13px;margin-bottom:8px;font-family:inherit;background:var(--bg2);color:var(--text);outline:none}
-.tool-card button{background:var(--blue);color:#fff;border:none;padding:10px 20px;border-radius:var(--radius-sm);font-size:13px;cursor:pointer;font-weight:600}
-.tool-result{background:var(--bg2);border-radius:var(--radius-sm);padding:12px;font-size:13px;line-height:1.7;color:var(--text);margin-top:10px;white-space:pre-wrap;display:none;border:1px solid var(--border)}
-.sim-counter{font-size:12px;color:var(--text3);margin-bottom:10px;background:var(--bg2);padding:6px 12px;border-radius:var(--radius-sm);display:inline-block}
-.sim-counter.warning{color:#854F0B;background:var(--gold-light)}
+.testi-a{font-size:12px;color:var(--text3);font-weight:600}
+
+/* SECTION */
+.st{font-size:20px;font-weight:700;margin-bottom:.4rem}
+.ss{font-size:14px;color:var(--text2);margin-bottom:1.5rem;line-height:1.7}
+
+/* PLANS */
+.pg{display:grid;grid-template-columns:repeat(auto-fit,minmax(175px,1fr));gap:12px;margin-bottom:1.5rem}
+.pc{background:var(--bg);border:1px solid var(--border);border-radius:var(--r);padding:1.3rem}
+.pc.feat{border:2px solid var(--blue)}
+.pc.prem{border:2px solid var(--gold);background:#fffdf7}
+.pb2{display:inline-block;font-size:11px;background:var(--blue-light);color:var(--blue-dark);padding:3px 10px;border-radius:20px;margin-bottom:10px;font-weight:600}
+.pb2.g{background:var(--gold-light);color:var(--gold-dark)}
+.pn{font-size:15px;font-weight:700;margin-bottom:5px}
+.pp{font-size:26px;font-weight:700;line-height:1}
+.pp span{font-size:13px;color:var(--text3);font-weight:400}
+.pp.gp{color:var(--gold-dark)}
+.pul{list-style:none;margin-top:1rem;display:flex;flex-direction:column;gap:6px}
+.pul li{font-size:12px;color:var(--text2);display:flex;gap:6px}
+.ck{color:var(--green)}.ckg{color:var(--gold-dark)}
+.pbtn{width:100%;margin-top:1.2rem;background:var(--blue);color:#fff;border:none;padding:11px;border-radius:var(--rs);font-size:13px;cursor:pointer;font-weight:600}
+.pbtn:hover{background:var(--blue-dark)}
+.pbtn.fr{background:transparent;color:var(--blue);border:1px solid var(--blue)}
+.pbtn.gbtn{background:var(--gold);color:#fff;border:none}
+.pbtn.gbtn:hover{background:var(--gold-dark)}
+.snote{display:flex;align-items:center;gap:8px;background:var(--bg2);border-radius:var(--rs);padding:10px 14px;font-size:12px;color:var(--text3);margin-bottom:1.5rem;border:1px solid var(--border)}
+
+/* COACHING */
+.cw{background:var(--bg2);border-radius:var(--r);padding:1.5rem;margin-bottom:1.5rem;border:1px solid var(--border)}
+.ch{display:flex;align-items:center;gap:10px;margin-bottom:1.2rem}
+.ca{width:42px;height:42px;border-radius:50%;background:var(--blue-light);display:flex;align-items:center;justify-content:center;border:2px solid var(--blue)}
+.cn{font-size:14px;font-weight:600}.cs{font-size:12px;color:var(--green)}
+.msgs{display:flex;flex-direction:column;gap:10px;margin-bottom:1rem;min-height:220px;max-height:340px;overflow-y:auto}
+.msg{max-width:82%;padding:11px 15px;border-radius:var(--r);font-size:14px;line-height:1.65}
+.msg.c{background:var(--bg);border:1px solid var(--border);align-self:flex-start}
+.msg.u{background:var(--blue);color:#fff;align-self:flex-end}
+.msg.t{background:var(--bg);border:1px solid var(--border);align-self:flex-start;color:var(--text3)}
+.ir{display:flex;gap:8px}
+.ir input{flex:1;padding:11px 14px;border-radius:var(--r);border:1px solid var(--border);font-size:14px;outline:none;color:var(--text);background:var(--bg)}
+.ir input:focus{border-color:var(--blue)}
+.ir button{background:var(--blue);color:#fff;border:none;padding:11px 20px;border-radius:var(--r);cursor:pointer;font-size:14px;font-weight:600}
+.qbs{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px}
+.qb{background:var(--bg);border:1px solid var(--border);border-radius:20px;padding:6px 13px;font-size:12px;cursor:pointer;color:var(--text2)}
+.qb:hover{background:var(--blue-light);color:var(--blue-dark);border-color:var(--blue)}
+
+/* TABS */
+.tabs{display:flex;border-bottom:1px solid var(--border);margin-bottom:1.5rem;overflow-x:auto}
+.tab{padding:11px 16px;font-size:13px;cursor:pointer;color:var(--text3);border:none;background:none;border-bottom:2px solid transparent;font-weight:500;white-space:nowrap}
+.tab.on{color:var(--blue);border-bottom-color:var(--blue);font-weight:600}
+
+/* JOURNAL */
+.jc{background:var(--bg);border:1px solid var(--border);border-radius:var(--r);padding:1.3rem;margin-bottom:12px}
+.jc h3{font-size:14px;font-weight:600;margin-bottom:8px}
+.jc textarea{width:100%;border:1px solid var(--border);border-radius:var(--rs);padding:10px 12px;font-size:13px;resize:vertical;min-height:80px;font-family:inherit;background:var(--bg2);outline:none;color:var(--text)}
+.jc button{margin-top:10px;background:var(--blue);color:#fff;border:none;padding:9px 18px;border-radius:var(--rs);font-size:13px;cursor:pointer;font-weight:600}
+
+/* PROGRESS */
+.ps{margin-bottom:1.4rem}
+.pl{display:flex;justify-content:space-between;font-size:13px;color:var(--text2);margin-bottom:7px}
+.pb{height:8px;background:var(--bg3);border-radius:4px;overflow:hidden}
+.pf{height:100%;background:var(--blue);border-radius:4px}
+.badges{display:flex;flex-wrap:wrap;gap:8px;margin-top:1rem}
+.badge{background:var(--blue-light);color:var(--blue-dark);border-radius:20px;padding:6px 13px;font-size:12px;font-weight:600}
+.badge.lk{background:var(--bg2);color:var(--text3);border:1px solid var(--border)}
+
+/* TOOLS */
+.tc{background:var(--bg);border:1px solid var(--border);border-radius:var(--r);padding:1.3rem;margin-bottom:12px}
+.tc h3{font-size:15px;font-weight:600;margin-bottom:6px}
+.tc p{font-size:13px;color:var(--text2);margin-bottom:12px;line-height:1.6}
+.tc input,.tc textarea{width:100%;padding:9px 12px;border:1px solid var(--border);border-radius:var(--rs);font-size:13px;margin-bottom:8px;font-family:inherit;background:var(--bg2);color:var(--text);outline:none}
+.tc button{background:var(--blue);color:#fff;border:none;padding:10px 20px;border-radius:var(--rs);font-size:13px;cursor:pointer;font-weight:600}
+.tr{background:var(--bg2);border-radius:var(--rs);padding:12px;font-size:13px;line-height:1.7;color:var(--text);margin-top:10px;white-space:pre-wrap;display:none;border:1px solid var(--border)}
+.sc{font-size:12px;color:var(--text3);background:var(--bg2);padding:6px 12px;border-radius:var(--rs);display:inline-block;margin-bottom:10px}
+.sc.warn{color:var(--gold-dark);background:var(--gold-light)}
+
+/* LOGIN WALL */
+.lw{text-align:center;padding:3rem 1.5rem;background:var(--bg2);border-radius:var(--r);border:1px solid var(--border);margin:1rem 0}
+.lw h2{font-size:18px;font-weight:700;margin-bottom:.5rem}
+.lw p{font-size:14px;color:var(--text2);margin-bottom:1.5rem;line-height:1.7}
 </style>
 </head>
 <body>
 <div class="app">
-  <div class="nav">
-    <div class="logo">Mon<span>Coach</span>Life IA</div>
-    <div class="nav-right">
-      <button class="nav-btn" onclick="showPage('landing')">Accueil</button>
-      <button class="nav-btn" onclick="showPage('offres')">Offres</button>
-      <button class="nav-btn" onclick="showPageAuth('coaching')">Coaching</button>
-      <button class="nav-btn" onclick="showPageAuth('outils')">Outils</button>
-      <div class="auth-bar" id="auth-bar">
-        <div class="user-avatar" id="user-avatar">U</div>
-        <span class="user-name" id="user-name"></span>
-        <button class="btn-logout" onclick="handleLogout()">Déco</button>
-      </div>
-      <button class="btn-google" id="btn-login" onclick="handleLogin()" style="display:flex">
-        <svg width="16" height="16" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
-        Connexion Google
-      </button>
+<nav>
+  <div class="logo">Mon<span>Coach</span>Life IA</div>
+  <div class="nav-right">
+    <button class="nb" id="n-accueil" onclick="nav('accueil')">Accueil</button>
+    <button class="nb" id="n-offres" onclick="nav('offres')">Offres</button>
+    <button class="nb" id="n-coaching" onclick="nav('coaching')">Coaching</button>
+    <button class="nb" id="n-outils" onclick="nav('outils')">Outils</button>
+    <div class="abar" id="abar">
+      <div class="av" id="av">H</div>
+      <span class="aname" id="aname"></span>
+      <button class="alo" onclick="logout()">Déco</button>
     </div>
+    <button class="bg" id="gbtn" onclick="login()">
+      <svg width="16" height="16" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+      Connexion
+    </button>
   </div>
+</nav>
 
-  <div id="page-landing" class="page active">
-    <div class="hero-app">
-      <div class="badge-pill">Bêta ouverte — 100% gratuit pour démarrer</div>
-      <h1>Tu as perdu ton emploi.<br>Retrouve <span>ton cap.</span></h1>
-      <p>Un coach IA bienveillant, disponible 24h/24, pour t'aider à reconstruire un projet de vie concret après un licenciement.</p>
-      <div>
-        <button class="btn-primary" onclick="showPageAuth('coaching')">Parler au coach maintenant</button>
-        <button class="btn-outline" onclick="showPage('offres')">Voir les offres</button>
-      </div>
-    </div>
-    <div class="stats-row">
-      <div class="stat"><div class="stat-n">2 300+</div><div class="stat-l">personnes accompagnées</div></div>
-      <div class="stat"><div class="stat-n">4.8/5</div><div class="stat-l">satisfaction</div></div>
-      <div class="stat"><div class="stat-n">297€</div><div class="stat-l">accès complet</div></div>
-    </div>
-    <div class="features-grid">
-      <div class="feat-card">
-        <div class="feat-icon" style="background:var(--blue-light)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#185FA5" stroke-width="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg></div>
-        <h3>Coaching IA bienveillant</h3>
-        <p>Conversations douces et profondes pour t'aider à te comprendre et avancer.</p>
-      </div>
-      <div class="feat-card">
-        <div class="feat-icon" style="background:var(--green-light)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0F6E56" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg></div>
-        <h3>CV & lettre IA</h3>
-        <p>Génère un CV professionnel et une lettre personnalisée en quelques secondes.</p>
-      </div>
-      <div class="feat-card">
-        <div class="feat-icon" style="background:var(--gold-light)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#854F0B" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg></div>
-        <h3>Simulateur d'entretien</h3>
-        <p>Luna joue le recruteur et te prépare aux vraies questions.</p>
-      </div>
-      <div class="feat-card">
-        <div class="feat-icon" style="background:var(--purple-light)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#534AB7" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div>
-        <h3>Plan 90 jours</h3>
-        <p>Un programme structuré semaine par semaine pour ta reconversion.</p>
-      </div>
-    </div>
-    <hr class="divider">
-    <div class="testi"><p>"Après 8 mois de chômage, j'avais arrêté de chercher. En 3 semaines avec Mon Coach Life IA, j'ai trouvé une direction que je n'aurais jamais imaginée seule."</p><div class="testi-author">— Sandrine, 41 ans · Lyon</div></div>
-    <div class="testi"><p>"Le simulateur d'entretien m'a transformé. J'ai décroché mon poste dès le 2ème entretien après des mois d'échecs."</p><div class="testi-author">— Karim, 36 ans · Bordeaux</div></div>
+<!-- ACCUEIL -->
+<div class="page on" id="p-accueil">
+  <div class="hero">
+    <div class="pill">Bêta ouverte — 100% gratuit pour démarrer</div>
+    <h1>Tu as perdu ton emploi.<br>Retrouve <span>ton cap.</span></h1>
+    <p>Un coach IA bienveillant, disponible 24h/24, pour t'aider à reconstruire un projet de vie concret après un licenciement.</p>
+    <button class="bp" onclick="nav('coaching')">Parler au coach maintenant</button>
+    <button class="bo" onclick="nav('offres')">Voir les offres</button>
   </div>
-
-  <div id="page-offres" class="page">
-    <div class="section-title">Choisis ton accompagnement</div>
-    <div class="section-sub">Sans engagement sur les plans mensuels. Paiement unique sur le Booster de Destinée.</div>
-    <div class="stripe-note">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
-      Paiement sécurisé via Stripe · Données chiffrées · Aucun frais caché
-    </div>
-    <div class="plans-grid">
-      <div class="plan-card">
-        <div class="plan-name">Essentiel</div>
-        <div class="plan-price">Gratuit <span>/ toujours</span></div>
-        <ul class="plan-ul">
-          <li><span class="check">✓</span>3 séances Luna / mois</li>
-          <li><span class="check">✓</span>Journal de bord</li>
-          <li><span class="check">✓</span>Accès communauté</li>
-        </ul>
-        <button class="plan-btn free" onclick="showPageAuth('coaching')">Commencer</button>
-      </div>
-      <div class="plan-card featured">
-        <div class="plan-badge">Le plus choisi</div>
-        <div class="plan-name">Accompagné</div>
-        <div class="plan-price">9€ <span>/ mois</span></div>
-        <ul class="plan-ul">
-          <li><span class="check">✓</span>Luna illimité</li>
-          <li><span class="check">✓</span>Plan d'action personnalisé</li>
-          <li><span class="check">✓</span>Suivi de progression</li>
-          <li><span class="check">✓</span>Journal intelligent</li>
-        </ul>
-        <button class="plan-btn" onclick="window.location.href='https://buy.stripe.com/4gMfZhcCU2x1685gSt33W00'">Choisir</button>
-      </div>
-      <div class="plan-card">
-        <div class="plan-name">Intensif</div>
-        <div class="plan-price">29€ <span>/ mois</span></div>
-        <ul class="plan-ul">
-          <li><span class="check">✓</span>Tout Accompagné</li>
-          <li><span class="check">✓</span>CV & lettre IA illimités</li>
-          <li><span class="check">✓</span>3 simulations d'entretien</li>
-          <li><span class="check">✓</span>Plan reconversion 90 jours</li>
-        </ul>
-        <button class="plan-btn" onclick="window.location.href='https://buy.stripe.com/5kQcN59qI4F9eEB59L33W01'">Choisir</button>
-      </div>
-      <div class="plan-card premium">
-        <div class="plan-badge gold">Transformation complète</div>
-        <div class="plan-name">Booster de Destinée</div>
-        <div class="plan-price gold-price">297€ <span>paiement unique</span></div>
-        <ul class="plan-ul">
-          <li><span class="check gold">✓</span>Tout le plan Intensif</li>
-          <li><span class="check gold">✓</span>Simulations illimitées</li>
-          <li><span class="check gold">✓</span>Bilan de compétences PDF</li>
-          <li><span class="check gold">✓</span>Boîte à outils premium</li>
-          <li><span class="check gold">✓</span>Toutes futures fonctions</li>
-          <li><span class="check gold">✓</span>Support prioritaire</li>
-        </ul>
-        <button class="plan-btn gold-btn" onclick="window.location.href='https://buy.stripe.com/6oU3cv9qI1sX6859q133W02'>Accéder au Booster</button>
-      </div>
-    </div>
+  <div class="stats">
+    <div class="stat"><div class="sn">2 300+</div><div class="sl">personnes accompagnées</div></div>
+    <div class="stat"><div class="sn">4.8/5</div><div class="sl">satisfaction</div></div>
+    <div class="stat"><div class="sn">297€</div><div class="sl">accès complet</div></div>
   </div>
-
-  <div id="page-coaching" class="page">
-    <div id="login-wall" class="login-wall">
-      <h2>Connecte-toi pour accéder au coaching</h2>
-      <p>Crée ton compte gratuit en un clic avec Google pour parler à Luna.</p>
-      <button class="btn-google" onclick="handleLogin()" style="display:inline-flex;margin:0 auto">
-        <svg width="16" height="16" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
-        Se connecter avec Google
-      </button>
-    </div>
-    <div id="coaching-content" style="display:none">
-      <div class="tab-bar">
-        <button class="tab active" onclick="switchTab('chat',this)">Coaching</button>
-        <button class="tab" onclick="switchTab('journal',this)">Journal</button>
-        <button class="tab" onclick="switchTab('progress',this)">Progression</button>
-      </div>
-      <div id="tab-chat">
-        <div class="coaching-wrap">
-          <div class="coaching-header">
-            <div class="coach-avatar-img"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#185FA5" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg></div>
-            <div><div class="coach-name">Luna — ton coach de vie IA</div><div class="coach-status">En ligne · répond en quelques secondes</div></div>
-          </div>
-          <div class="messages" id="messages">
-            <div class="msg coach">Bonjour, je suis Luna, ton coach de vie. Je suis là pour t'écouter, sans jugement, à ton rythme. Comment tu vas aujourd'hui ?</div>
-          </div>
-          <div class="quick-btns">
-            <button class="quick-btn" onclick="quickMsg('Je me sens perdu(e) et je ne sais pas par où commencer.')">Je me sens perdu(e)</button>
-            <button class="quick-btn" onclick="quickMsg('J\'ai peur de ne plus retrouver ma place.')">J'ai peur de l'avenir</button>
-            <button class="quick-btn" onclick="quickMsg('Je veux trouver un nouveau projet de vie.')">Trouver un projet</button>
-            <button class="quick-btn" onclick="quickMsg('J\'ai du mal à rester motivé(e) chaque jour.')">Garder la motivation</button>
-          </div>
-          <div class="input-row">
-            <input type="text" id="user-input" placeholder="Écris ce que tu ressens..." onkeydown="if(event.key==='Enter')sendMsg()">
-            <button onclick="sendMsg()">Envoyer</button>
-          </div>
-        </div>
-      </div>
-      <div id="tab-journal" style="display:none">
-        <div class="section-title" style="margin-bottom:0.5rem">Journal de bord</div>
-        <div class="section-sub">Quelques lignes chaque jour. Ça change tout.</div>
-        <div class="journal-card">
-          <h3>Comment je me sens aujourd'hui ?</h3>
-          <textarea placeholder="Écris librement..."></textarea>
-          <button onclick="saveJournal()">Enregistrer</button>
-        </div>
-        <div class="journal-card">
-          <h3>Une chose positive aujourd'hui</h3>
-          <textarea placeholder="Même petite, il y en a toujours une..." style="min-height:60px"></textarea>
-          <button onclick="saveJournal()">Enregistrer</button>
-        </div>
-        <div id="journal-saved" style="display:none;background:var(--green-light);color:var(--green);border-radius:var(--radius-sm);padding:10px 14px;font-size:13px;margin-top:8px;font-weight:500">Entrée sauvegardée. Continue comme ça !</div>
-      </div>
-      <div id="tab-progress" style="display:none">
-        <div class="section-title" style="margin-bottom:1.2rem">Ta progression</div>
-        <div class="progress-section"><div class="progress-label"><span>Clarté sur ton projet</span><span>45%</span></div><div class="progress-bar"><div class="progress-fill" style="width:45%"></div></div></div>
-        <div class="progress-section"><div class="progress-label"><span>Confiance en toi</span><span>62%</span></div><div class="progress-bar"><div class="progress-fill" style="width:62%"></div></div></div>
-        <div class="progress-section"><div class="progress-label"><span>Motivation quotidienne</span><span>38%</span></div><div class="progress-bar"><div class="progress-fill" style="width:38%"></div></div></div>
-        <div class="progress-section"><div class="progress-label"><span>Réseau & contacts</span><span>20%</span></div><div class="progress-bar"><div class="progress-fill" style="width:20%"></div></div></div>
-        <div style="font-size:15px;font-weight:700;margin:1.5rem 0 0.5rem">Badges obtenus</div>
-        <div class="badge-row">
-          <div class="badge-item">Premier pas</div>
-          <div class="badge-item">3 jours de suite</div>
-          <div class="badge-item locked">Projet défini</div>
-          <div class="badge-item locked">1 mois d'effort</div>
-        </div>
-      </div>
-    </div>
+  <div class="fg">
+    <div class="fc"><div class="fi" style="background:var(--blue-light)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#185FA5" stroke-width="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg></div><h3>Coaching bienveillant</h3><p>Conversations douces pour t'aider à te comprendre et avancer.</p></div>
+    <div class="fc"><div class="fi" style="background:var(--green-light)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0F6E56" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg></div><h3>CV & lettre IA</h3><p>Génère un CV pro et une lettre personnalisée en secondes.</p></div>
+    <div class="fc"><div class="fi" style="background:var(--gold-light)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#854F0B" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></svg></div><h3>Simulateur entretien</h3><p>Luna joue le recruteur et te prépare aux vraies questions.</p></div>
+    <div class="fc"><div class="fi" style="background:#EEEDFE"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#534AB7" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div><h3>Plan 90 jours</h3><p>Programme structuré semaine par semaine pour ta reconversion.</p></div>
   </div>
+  <hr>
+  <div class="testi"><p>"Après 8 mois de chômage, j'avais arrêté de chercher. En 3 semaines avec Mon Coach Life IA, j'ai trouvé une direction que je n'aurais jamais imaginée seule."</p><div class="testi-a">— Sandrine, 41 ans · Lyon</div></div>
+  <div class="testi"><p>"Le simulateur d'entretien m'a transformé. J'ai décroché mon poste dès le 2ème entretien."</p><div class="testi-a">— Karim, 36 ans · Bordeaux</div></div>
+</div>
 
-  <div id="page-outils" class="page">
-    <div id="login-wall-outils" class="login-wall">
-      <h2>Connecte-toi pour accéder aux outils</h2>
-      <p>Ces outils sont disponibles dès le plan Intensif (29€/mois) ou Booster de Destinée (297€).</p>
-      <button class="btn-google" onclick="handleLogin()" style="display:inline-flex;margin:0 auto 12px">
-        <svg width="16" height="16" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
-        Se connecter
-      </button>
-      <br><button class="btn-primary" onclick="showPage('offres')" style="font-size:13px;padding:10px 20px">Voir les offres</button>
+<!-- OFFRES -->
+<div class="page" id="p-offres">
+  <div class="st">Choisis ton accompagnement</div>
+  <div class="ss">Sans engagement sur les plans mensuels. Paiement unique sur le Booster.</div>
+  <div class="snote"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>Paiement sécurisé via Stripe · Données chiffrées</div>
+  <div class="pg">
+    <div class="pc">
+      <div class="pn">Essentiel</div>
+      <div class="pp">Gratuit <span>/ toujours</span></div>
+      <ul class="pul"><li><span class="ck">✓</span>3 séances Luna / mois</li><li><span class="ck">✓</span>Journal de bord</li><li><span class="ck">✓</span>Accès communauté</li></ul>
+      <button class="pbtn fr" onclick="nav('coaching')">Commencer</button>
     </div>
-    <div id="outils-content" style="display:none">
-      <div class="tab-bar">
-        <button class="tab active" onclick="switchTabOutils('cv',this)">CV & Lettre</button>
-        <button class="tab" onclick="switchTabOutils('entretien',this)">Entretien</button>
-        <button class="tab" onclick="switchTabOutils('plan90',this)">Plan 90 jours</button>
-        <button class="tab" onclick="switchTabOutils('bilan',this)">Bilan</button>
-      </div>
-
-      <div id="otab-cv">
-        <div class="tool-card">
-          <h3>Générateur de CV</h3>
-          <p>Décris ton parcours et le poste visé — l'IA génère un CV professionnel.</p>
-          <input type="text" id="cv-nom" placeholder="Ton prénom et nom">
-          <input type="text" id="cv-poste" placeholder="Poste visé (ex: Développeur web)">
-          <textarea id="cv-parcours" placeholder="Décris ton parcours en quelques lignes..." style="min-height:80px"></textarea>
-          <button onclick="genererCV()">Générer mon CV</button>
-          <div class="tool-result" id="cv-result"></div>
-        </div>
-        <div class="tool-card">
-          <h3>Générateur de lettre de motivation</h3>
-          <p>Entre le poste et l'entreprise — l'IA rédige une lettre percutante.</p>
-          <input type="text" id="lm-poste" placeholder="Poste visé">
-          <input type="text" id="lm-entreprise" placeholder="Nom de l'entreprise">
-          <textarea id="lm-motivation" placeholder="Pourquoi ce poste t'intéresse ?" style="min-height:60px"></textarea>
-          <button onclick="genererLettre()">Générer ma lettre</button>
-          <div class="tool-result" id="lm-result"></div>
-        </div>
-      </div>
-
-      <div id="otab-entretien" style="display:none">
-        <div class="tool-card">
-          <h3>Simulateur d'entretien</h3>
-          <p>Luna joue le rôle du recruteur et t'évalue. Limité à 3 simulations sur le plan Intensif.</p>
-          <div class="sim-counter" id="sim-counter">Simulations utilisées : 0 / 3</div>
-          <input type="text" id="sim-poste" placeholder="Poste pour lequel tu passes l'entretien">
-          <button onclick="lancerSimulation()">Lancer la simulation</button>
-          <div class="tool-result" id="sim-result"></div>
-        </div>
-      </div>
-
-      <div id="otab-plan90" style="display:none">
-        <div class="tool-card">
-          <h3>Plan de reconversion 90 jours</h3>
-          <p>L'IA génère un programme personnalisé semaine par semaine selon ton profil.</p>
-          <input type="text" id="plan-situation" placeholder="Ta situation actuelle (ex: ex-comptable, 42 ans)">
-          <input type="text" id="plan-objectif" placeholder="Ton objectif (ex: devenir graphiste freelance)">
-          <button onclick="genererPlan()">Générer mon plan</button>
-          <div class="tool-result" id="plan-result"></div>
-        </div>
-      </div>
-
-      <div id="otab-bilan" style="display:none">
-        <div class="tool-card">
-          <h3>Bilan de compétences IA</h3>
-          <p>Réponds à ces questions pour obtenir un bilan complet de tes forces et pistes de reconversion.</p>
-          <textarea id="bilan-experience" placeholder="Tes expériences professionnelles..." style="min-height:70px"></textarea>
-          <textarea id="bilan-passion" placeholder="Ce qui te passionne dans la vie..." style="min-height:60px"></textarea>
-          <textarea id="bilan-valeurs" placeholder="Tes valeurs importantes (ex: liberté, utilité, créativité)..." style="min-height:60px"></textarea>
-          <button onclick="genererBilan()">Générer mon bilan</button>
-          <div class="tool-result" id="bilan-result"></div>
-        </div>
-      </div>
+    <div class="pc feat">
+      <div class="pb2">Le plus choisi</div>
+      <div class="pn">Accompagné</div>
+      <div class="pp">9€ <span>/ mois</span></div>
+      <ul class="pul"><li><span class="ck">✓</span>Luna illimité</li><li><span class="ck">✓</span>Plan d'action personnalisé</li><li><span class="ck">✓</span>Suivi de progression</li><li><span class="ck">✓</span>Journal intelligent</li></ul>
+      <button class="pbtn" onclick="go('https://buy.stripe.com/4gMfZhcCU2x1685gSt33W00')">Choisir</button>
+    </div>
+    <div class="pc">
+      <div class="pn">Intensif</div>
+      <div class="pp">29€ <span>/ mois</span></div>
+      <ul class="pul"><li><span class="ck">✓</span>Tout Accompagné</li><li><span class="ck">✓</span>CV & lettre IA illimités</li><li><span class="ck">✓</span>3 simulations d'entretien</li><li><span class="ck">✓</span>Plan reconversion 90j</li></ul>
+      <button class="pbtn" onclick="go('https://buy.stripe.com/5kQcN59qI4F9eEB59L33W01')">Choisir</button>
+    </div>
+    <div class="pc prem">
+      <div class="pb2 g">Transformation complète</div>
+      <div class="pn">Booster de Destinée</div>
+      <div class="pp gp">297€ <span>paiement unique</span></div>
+      <ul class="pul"><li><span class="ckg">✓</span>Tout le plan Intensif</li><li><span class="ckg">✓</span>Simulations illimitées</li><li><span class="ckg">✓</span>Bilan de compétences PDF</li><li><span class="ckg">✓</span>Boîte à outils premium</li><li><span class="ckg">✓</span>Toutes futures fonctions</li><li><span class="ckg">✓</span>Support prioritaire</li></ul>
+      <button class="pbtn gbtn" onclick="go('https://buy.stripe.com/6oU3cv9qI1sX6859q133W02')">Accéder au Booster</button>
     </div>
   </div>
 </div>
 
+<!-- COACHING -->
+<div class="page" id="p-coaching">
+  <div id="lw-coaching" class="lw" style="display:none">
+    <h2>Connecte-toi pour accéder au coaching</h2>
+    <p>Crée ton compte gratuit en un clic avec Google.</p>
+    <button class="bg" onclick="login()" style="display:inline-flex;margin:0 auto 12px">
+      <svg width="16" height="16" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+      Se connecter avec Google
+    </button>
+  </div>
+  <div id="ct-coaching">
+    <div class="tabs">
+      <button class="tab on" onclick="ctab('chat',this)">Coaching</button>
+      <button class="tab" onclick="ctab('journal',this)">Journal</button>
+      <button class="tab" onclick="ctab('progress',this)">Progression</button>
+    </div>
+    <div id="ct-chat">
+      <div class="cw">
+        <div class="ch">
+          <div class="ca"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#185FA5" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg></div>
+          <div><div class="cn">Luna — ton coach de vie IA</div><div class="cs">En ligne · répond en quelques secondes</div></div>
+        </div>
+        <div class="msgs" id="msgs"><div class="msg c">Bonjour, je suis Luna, ton coach de vie. Je suis là pour t'écouter, sans jugement, à ton rythme. Comment tu vas aujourd'hui ?</div></div>
+        <div class="qbs">
+          <button class="qb" onclick="qm('Je me sens perdu(e) et je ne sais pas par où commencer.')">Je me sens perdu(e)</button>
+          <button class="qb" onclick="qm('J\'ai peur de ne plus retrouver ma place.')">J'ai peur de l'avenir</button>
+          <button class="qb" onclick="qm('Je veux trouver un nouveau projet de vie.')">Trouver un projet</button>
+          <button class="qb" onclick="qm('J\'ai du mal à rester motivé(e).')">Garder la motivation</button>
+        </div>
+        <div class="ir">
+          <input type="text" id="ui" placeholder="Écris ce que tu ressens..." onkeydown="if(event.key==='Enter')sm()">
+          <button onclick="sm()">Envoyer</button>
+        </div>
+      </div>
+    </div>
+    <div id="ct-journal" style="display:none">
+      <div class="st" style="margin-bottom:.5rem">Journal de bord</div>
+      <div class="ss">Quelques lignes chaque jour. Ça change tout.</div>
+      <div class="jc"><h3>Comment je me sens aujourd'hui ?</h3><textarea placeholder="Écris librement..."></textarea><button onclick="sj()">Enregistrer</button></div>
+      <div class="jc"><h3>Une chose positive aujourd'hui</h3><textarea placeholder="Même petite..." style="min-height:60px"></textarea><button onclick="sj()">Enregistrer</button></div>
+      <div id="js" style="display:none;background:var(--green-light);color:var(--green);border-radius:var(--rs);padding:10px 14px;font-size:13px;margin-top:8px;font-weight:500">Entrée sauvegardée !</div>
+    </div>
+    <div id="ct-progress" style="display:none">
+      <div class="st" style="margin-bottom:1.2rem">Ta progression</div>
+      <div class="ps"><div class="pl"><span>Clarté sur ton projet</span><span>45%</span></div><div class="pb"><div class="pf" style="width:45%"></div></div></div>
+      <div class="ps"><div class="pl"><span>Confiance en toi</span><span>62%</span></div><div class="pb"><div class="pf" style="width:62%"></div></div></div>
+      <div class="ps"><div class="pl"><span>Motivation quotidienne</span><span>38%</span></div><div class="pb"><div class="pf" style="width:38%"></div></div></div>
+      <div class="ps"><div class="pl"><span>Réseau & contacts</span><span>20%</span></div><div class="pb"><div class="pf" style="width:20%"></div></div></div>
+      <div style="font-size:15px;font-weight:700;margin:1.5rem 0 .5rem">Badges</div>
+      <div class="badges"><div class="badge">Premier pas</div><div class="badge">3 jours de suite</div><div class="badge lk">Projet défini</div><div class="badge lk">1 mois d'effort</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- OUTILS -->
+<div class="page" id="p-outils">
+  <div id="lw-outils" class="lw" style="display:none">
+    <h2>Connecte-toi pour accéder aux outils</h2>
+    <p>Disponible dès le plan Intensif (29€/mois) ou Booster de Destinée (297€).</p>
+    <button class="bg" onclick="login()" style="display:inline-flex;margin:0 auto 12px">
+      <svg width="16" height="16" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+      Se connecter
+    </button>
+    <br><button class="bp" onclick="nav('offres')" style="font-size:13px;padding:10px 20px;margin-top:8px">Voir les offres</button>
+  </div>
+  <div id="ct-outils">
+    <div class="tabs">
+      <button class="tab on" onclick="otab('cv',this)">CV & Lettre</button>
+      <button class="tab" onclick="otab('entretien',this)">Entretien</button>
+      <button class="tab" onclick="otab('plan90',this)">Plan 90j</button>
+      <button class="tab" onclick="otab('bilan',this)">Bilan</button>
+    </div>
+    <div id="ot-cv">
+      <div class="tc"><h3>Générateur de CV</h3><p>Décris ton parcours et le poste visé.</p><input type="text" id="cv-nom" placeholder="Prénom et nom"><input type="text" id="cv-poste" placeholder="Poste visé"><textarea id="cv-parc" placeholder="Ton parcours en quelques lignes..." style="min-height:80px"></textarea><button onclick="genCV()">Générer mon CV</button><div class="tr" id="cv-r"></div></div>
+      <div class="tc"><h3>Lettre de motivation</h3><p>Entre le poste et l'entreprise.</p><input type="text" id="lm-poste" placeholder="Poste visé"><input type="text" id="lm-ent" placeholder="Entreprise"><textarea id="lm-mot" placeholder="Pourquoi ce poste t'intéresse ?" style="min-height:60px"></textarea><button onclick="genLM()">Générer ma lettre</button><div class="tr" id="lm-r"></div></div>
+    </div>
+    <div id="ot-entretien" style="display:none">
+      <div class="tc"><h3>Simulateur d'entretien</h3><p>Luna joue le recruteur. Limité à 3 simulations sur Intensif.</p><div class="sc" id="sc">Simulations : 0 / 3</div><input type="text" id="sim-poste" placeholder="Poste pour l'entretien"><button onclick="genSim()">Lancer la simulation</button><div class="tr" id="sim-r"></div></div>
+    </div>
+    <div id="ot-plan90" style="display:none">
+      <div class="tc"><h3>Plan reconversion 90 jours</h3><p>Programme personnalisé semaine par semaine.</p><input type="text" id="p90-sit" placeholder="Ta situation (ex: ex-comptable, 42 ans)"><input type="text" id="p90-obj" placeholder="Ton objectif (ex: devenir graphiste)"><button onclick="genP90()">Générer mon plan</button><div class="tr" id="p90-r"></div></div>
+    </div>
+    <div id="ot-bilan" style="display:none">
+      <div class="tc"><h3>Bilan de compétences</h3><p>Analyse complète de tes forces et pistes de reconversion.</p><textarea id="bl-exp" placeholder="Tes expériences professionnelles..." style="min-height:70px"></textarea><textarea id="bl-pas" placeholder="Ce qui te passionne..." style="min-height:60px"></textarea><textarea id="bl-val" placeholder="Tes valeurs importantes..." style="min-height:60px"></textarea><button onclick="genBilan()">Générer mon bilan</button><div class="tr" id="bl-r"></div></div>
+    </div>
+  </div>
+</div>
+</div>
+
+<script type="module">
+import {initializeApp} from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+import {getAuth,signInWithPopup,GoogleAuthProvider,signOut,onAuthStateChanged} from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+
+const app = initializeApp({
+  apiKey:"AIzaSyB5sMvlXLfLLgDLylpFQuUVnBgFpCFGi74",
+  authDomain:"moncoachlifeia.firebaseapp.com",
+  projectId:"moncoachlifeia",
+  storageBucket:"moncoachlifeia.firebasestorage.app",
+  messagingSenderId:"643285718787",
+  appId:"1:643285718787:web:66c6f7291b609e9047bb36"
+});
+const auth = getAuth(app);
+const provider = new GoogleAuthProvider();
+window._auth = auth;
+window._provider = provider;
+window._swp = signInWithPopup;
+window._so = signOut;
+
+onAuthStateChanged(auth, user => {
+  if(user){
+    document.getElementById('abar').style.display='flex';
+    document.getElementById('gbtn').style.display='none';
+    document.getElementById('av').textContent=(user.displayName||user.email)[0].toUpperCase();
+    document.getElementById('aname').textContent=user.displayName||user.email;
+    document.getElementById('lw-coaching').style.display='none';
+    document.getElementById('lw-outils').style.display='none';
+  } else {
+    document.getElementById('abar').style.display='none';
+    document.getElementById('gbtn').style.display='flex';
+    document.getElementById('lw-coaching').style.display='block';
+    document.getElementById('lw-outils').style.display='block';
+  }
+});
+</script>
+
 <script>
-var stripe=Stripe('pk_live_51Ke3nzHFd4Whm7LgG7GbE5xdOjL2wDxNWTwg9mlDkPOjOq5fNKBDfmp5wi8aYdAMV8qtxMoHpJxYbUZEWKA7WySa00MNYQTXmb');
-var ANTHROPIC_KEY='sk-ant-api03-v4z...2AAA';
-var simCount=parseInt(localStorage.getItem('simCount')||'0');
+var AK='REMPLACE_PAR_CLE_ANTHROPIC';
+var sc=parseInt(localStorage.getItem('sc')||'0');
+updateSC();
 
-function showPage(p){
-  if(!document.getElementById("page-"+p))return;
-  document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));
-  document.getElementById('page-'+p).classList.add('active');
+function nav(p){
+  document.querySelectorAll('.page').forEach(x=>x.classList.remove('on'));
+  document.querySelectorAll('.nb').forEach(x=>x.classList.remove('active'));
+  var pg=document.getElementById('p-'+p);
+  var nb=document.getElementById('n-'+p);
+  if(pg) pg.classList.add('on');
+  if(nb) nb.classList.add('active');
 }
 
-function showPageAuth(p){
-  if(!window.firebaseAuth){showPage(p);return;}
-  showPage(p);
-  var user=window.firebaseAuth&&window.firebaseAuth.currentUser;
-  if(p==='coaching'){
-    if(user){document.getElementById('login-wall').style.display='none';document.getElementById('coaching-content').style.display='block';}
-    else{document.getElementById('login-wall').style.display='block';document.getElementById('coaching-content').style.display='none';}
-  }
-  if(p==='outils'){
-    if(user){document.getElementById('login-wall-outils').style.display='none';document.getElementById('outils-content').style.display='block';}
-    else{document.getElementById('login-wall-outils').style.display='block';document.getElementById('outils-content').style.display='none';}
-  }
+function go(url){window.location.href=url;}
+
+function login(){
+  if(!window._auth)return setTimeout(login,500);
+  window._swp(window._auth,window._provider).catch(e=>console.error(e));
 }
 
-function handleLogin(){
-  window.signInWithPopup(window.firebaseAuth,window.googleProvider)
-    .then(()=>{
-      document.getElementById('login-wall').style.display='none';
-      document.getElementById('coaching-content').style.display='block';
-      document.getElementById('login-wall-outils').style.display='none';
-      document.getElementById('outils-content').style.display='block';
-    }).catch(err=>console.error(err));
+function logout(){
+  if(!window._auth)return;
+  window._so(window._auth).then(()=>nav('accueil'));
 }
 
-function handleLogout(){window.signOut(window.firebaseAuth).then(()=>showPage('landing'));}
-
-function switchTab(t,el){
-  document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
-  document.querySelectorAll('#tab-chat,#tab-journal,#tab-progress').forEach(x=>x.style.display='none');
-  document.getElementById('tab-'+t).style.display='block';
-  el.classList.add('active');
+function ctab(t,el){
+  document.querySelectorAll('#p-coaching .tab').forEach(x=>x.classList.remove('on'));
+  document.querySelectorAll('#ct-chat,#ct-journal,#ct-progress').forEach(x=>x.style.display='none');
+  document.getElementById('ct-'+t).style.display='block';
+  el.classList.add('on');
 }
 
-function switchTabOutils(t,el){
-  document.querySelectorAll('#page-outils .tab').forEach(x=>x.classList.remove('active'));
-  document.querySelectorAll('#otab-cv,#otab-entretien,#otab-plan90,#otab-bilan').forEach(x=>x.style.display='none');
-  document.getElementById('otab-'+t).style.display='block';
-  el.classList.add('active');
+function otab(t,el){
+  document.querySelectorAll('#p-outils .tab').forEach(x=>x.classList.remove('on'));
+  document.querySelectorAll('#ot-cv,#ot-entretien,#ot-plan90,#ot-bilan').forEach(x=>x.style.display='none');
+  document.getElementById('ot-'+t).style.display='block';
+  el.classList.add('on');
 }
 
-function saveJournal(){
-  document.getElementById('journal-saved').style.display='block';
-  setTimeout(()=>document.getElementById('journal-saved').style.display='none',3000);
+function sj(){
+  var el=document.getElementById('js');
+  el.style.display='block';
+  setTimeout(()=>el.style.display='none',3000);
 }
 
-function quickMsg(txt){document.getElementById('user-input').value=txt;sendMsg();}
+function qm(t){document.getElementById('ui').value=t;sm();}
 
-var isTyping=false;
-var conversationHistory=[];
-var systemPrompt="Tu es Luna, un coach de vie IA doux, bienveillant et empathique, spécialisé dans l'accompagnement des personnes qui traversent une période de chômage ou de transition professionnelle. Tu parles en français, de façon chaleureuse. Tu poses une question à la fois. Tu valides les émotions avant de proposer des pistes.";
+var typing=false;
+var hist=[];
+var sys="Tu es Luna, un coach de vie IA doux, bienveillant et empathique. Tu accompagnes les personnes en période de chômage ou transition professionnelle. Tu parles en français, de façon chaleureuse. Tu poses une question à la fois. Tu valides les émotions avant de proposer des pistes.";
 
-async function callAI(prompt, systemMsg){
-  var res=await fetch('https://api.anthropic.com/v1/messages',{
-    method:'POST',
-    headers:{'Content-Type':'application/json','x-api-key':ANTHROPIC_KEY,'anthropic-version':'2023-06-01'},
-    body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1500,system:systemMsg||systemPrompt,messages:[{role:'user',content:prompt}]})
-  });
-  var data=await res.json();
-  return data.content&&data.content[0]?data.content[0].text:'';
-}
-
-async function sendMsg(){
-  if(isTyping)return;
-  var input=document.getElementById('user-input');
-  var txt=input.value.trim();
-  if(!txt)return;
-  input.value='';
-  addMsg(txt,'user');
-  conversationHistory.push({role:'user',content:txt});
-  isTyping=true;
-  var typing=addMsg('Luna écrit...','typing');
+async function sm(){
+  if(typing)return;
+  var inp=document.getElementById('ui');
+  var t=inp.value.trim();
+  if(!t)return;
+  inp.value='';
+  am(t,'u');
+  hist.push({role:'user',content:t});
+  typing=true;
+  var ty=am('Luna écrit...','t');
   try{
-    var res=await fetch('https://api.anthropic.com/v1/messages',{
-      method:'POST',
-      headers:{'Content-Type':'application/json','x-api-key':ANTHROPIC_KEY,'anthropic-version':'2023-06-01'},
-      body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1000,system:systemPrompt,messages:conversationHistory})
-    });
-    var data=await res.json();
-    typing.remove();
-    var reply=data.content&&data.content[0]?data.content[0].text:"Je suis là pour toi.";
-    addMsg(reply,'coach');
-    conversationHistory.push({role:'assistant',content:reply});
-  }catch(e){typing.remove();addMsg("Je t'écoute.",'coach');}
-  isTyping=false;
+    var r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json','x-api-key':AK,'anthropic-version':'2023-06-01'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1000,system:sys,messages:hist})});
+    var d=await r.json();
+    ty.remove();
+    var rep=d.content&&d.content[0]?d.content[0].text:"Je suis là pour toi.";
+    am(rep,'c');
+    hist.push({role:'assistant',content:rep});
+  }catch(e){ty.remove();am("Je t'écoute.",'c');}
+  typing=false;
 }
 
-function addMsg(txt,type){
-  var msgs=document.getElementById('messages');
+function am(t,type){
+  var el=document.getElementById('msgs');
   var d=document.createElement('div');
-  d.className='msg '+type;d.textContent=txt;
-  msgs.appendChild(d);msgs.scrollTop=msgs.scrollHeight;
+  d.className='msg '+type;d.textContent=t;
+  el.appendChild(d);el.scrollTop=el.scrollHeight;
   return d;
 }
 
-async function genererCV(){
-  var nom=document.getElementById('cv-nom').value;
-  var poste=document.getElementById('cv-poste').value;
-  var parcours=document.getElementById('cv-parcours').value;
-  if(!poste||!parcours)return alert('Remplis tous les champs');
-  var r=document.getElementById('cv-result');
-  r.style.display='block';r.textContent='Génération en cours...';
-  var txt=await callAI('Génère un CV professionnel en français pour '+nom+' qui vise le poste de '+poste+'. Parcours: '+parcours,'Tu es un expert RH français. Génère des CV professionnels structurés et percutants.');
-  r.textContent=txt;
+async function ai(prompt,sys2){
+  var r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json','x-api-key':AK,'anthropic-version':'2023-06-01'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1500,system:sys2,messages:[{role:'user',content:prompt}]})});
+  var d=await r.json();
+  return d.content&&d.content[0]?d.content[0].text:'';
 }
 
-async function genererLettre(){
-  var poste=document.getElementById('lm-poste').value;
-  var entreprise=document.getElementById('lm-entreprise').value;
-  var motivation=document.getElementById('lm-motivation').value;
-  if(!poste||!entreprise)return alert('Remplis tous les champs');
-  var r=document.getElementById('lm-result');
-  r.style.display='block';r.textContent='Génération en cours...';
-  var txt=await callAI('Génère une lettre de motivation percutante pour le poste de '+poste+' chez '+entreprise+'. Motivation: '+motivation,'Tu es un expert en rédaction de lettres de motivation en français. Rédige des lettres authentiques et convaincantes.');
-  r.textContent=txt;
+async function genCV(){
+  var n=document.getElementById('cv-nom').value,p=document.getElementById('cv-poste').value,pa=document.getElementById('cv-parc').value;
+  if(!p||!pa)return alert('Remplis tous les champs');
+  var r=document.getElementById('cv-r');r.style.display='block';r.textContent='Génération en cours...';
+  r.textContent=await ai('Génère un CV pro pour '+n+' visant '+p+'. Parcours: '+pa,'Expert RH. Génère des CV professionnels structurés en français.');
 }
 
-async function lancerSimulation(){
-  if(simCount>=3){
-    alert('Tu as utilisé tes 3 simulations du plan Intensif. Passe au Booster de Destinée pour des simulations illimitées !');
-    return;
-  }
-  var poste=document.getElementById('sim-poste').value;
-  if(!poste)return alert('Entre le poste pour lequel tu passes l\'entretien');
-  var r=document.getElementById('sim-result');
-  r.style.display='block';r.textContent='Simulation en cours...';
-  simCount++;
-  localStorage.setItem('simCount',simCount);
-  document.getElementById('sim-counter').textContent='Simulations utilisées : '+simCount+' / 3';
-  if(simCount>=3)document.getElementById('sim-counter').className='sim-counter warning';
-  var txt=await callAI('Joue le rôle d\'un recruteur qui fait passer un entretien pour le poste de '+poste+'. Pose 5 questions difficiles et réalistes, puis donne un feedback détaillé sur comment se préparer.','Tu es un recruteur expérimenté français. Tu poses des questions pertinentes et donnes des feedbacks constructifs.');
-  r.textContent=txt;
+async function genLM(){
+  var p=document.getElementById('lm-poste').value,e=document.getElementById('lm-ent').value,m=document.getElementById('lm-mot').value;
+  if(!p||!e)return alert('Remplis tous les champs');
+  var r=document.getElementById('lm-r');r.style.display='block';r.textContent='Génération en cours...';
+  r.textContent=await ai('Lettre de motivation pour '+p+' chez '+e+'. Motivation: '+m,'Expert lettres de motivation en français. Rédige des lettres authentiques et convaincantes.');
 }
 
-async function genererPlan(){
-  var situation=document.getElementById('plan-situation').value;
-  var objectif=document.getElementById('plan-objectif').value;
-  if(!situation||!objectif)return alert('Remplis tous les champs');
-  var r=document.getElementById('plan-result');
-  r.style.display='block';r.textContent='Génération de ton plan personnalisé...';
-  var txt=await callAI('Génère un plan de reconversion sur 90 jours pour quelqu\'un dans cette situation: '+situation+'. Objectif: '+objectif+'. Structure le plan semaine par semaine avec des actions concrètes.','Tu es un coach de reconversion professionnelle expert. Tu crées des plans d\'action concrets et motivants.');
-  r.textContent=txt;
+async function genSim(){
+  if(sc>=3){alert('3 simulations utilisées. Passe au Booster de Destinée pour des simulations illimitées !');return;}
+  var p=document.getElementById('sim-poste').value;
+  if(!p)return alert('Entre le poste');
+  var r=document.getElementById('sim-r');r.style.display='block';r.textContent='Simulation en cours...';
+  sc++;localStorage.setItem('sc',sc);updateSC();
+  r.textContent=await ai('Joue le recruteur pour un entretien pour '+p+'. Pose 5 questions difficiles puis donne un feedback détaillé.','Recruteur expérimenté. Questions pertinentes et feedbacks constructifs en français.');
 }
 
-async function genererBilan(){
-  var exp=document.getElementById('bilan-experience').value;
-  var passion=document.getElementById('bilan-passion').value;
-  var valeurs=document.getElementById('bilan-valeurs').value;
-  if(!exp)return alert('Décris tes expériences');
-  var r=document.getElementById('bilan-result');
-  r.style.display='block';r.textContent='Analyse de ton profil en cours...';
-  var txt=await callAI('Fais un bilan de compétences complet basé sur: Expériences: '+exp+' | Passions: '+passion+' | Valeurs: '+valeurs+'. Identifie les forces, compétences transférables, et propose 3 pistes de reconversion détaillées.','Tu es un expert en bilan de compétences. Tu analyses les profils avec bienveillance et précision.');
-  r.textContent=txt;
+function updateSC(){
+  var el=document.getElementById('sc');
+  if(!el)return;
+  el.textContent='Simulations : '+sc+' / 3';
+  el.className=sc>=3?'sc warn':'sc';
 }
 
-document.getElementById('sim-counter').textContent='Simulations utilisées : '+simCount+' / 3';
-if(simCount>=3)document.getElementById('sim-counter').className='sim-counter warning';
+async function genP90(){
+  var s=document.getElementById('p90-sit').value,o=document.getElementById('p90-obj').value;
+  if(!s||!o)return alert('Remplis tous les champs');
+  var r=document.getElementById('p90-r');r.style.display='block';r.textContent='Génération de ton plan...';
+  r.textContent=await ai('Plan reconversion 90 jours pour: '+s+'. Objectif: '+o+'. Structure semaine par semaine avec actions concrètes.','Coach reconversion pro. Plans d\'action concrets et motivants en français.');
+}
+
+async function genBilan(){
+  var e=document.getElementById('bl-exp').value,p=document.getElementById('bl-pas').value,v=document.getElementById('bl-val').value;
+  if(!e)return alert('Décris tes expériences');
+  var r=document.getElementById('bl-r');r.style.display='block';r.textContent='Analyse en cours...';
+  r.textContent=await ai('Bilan compétences: Exp: '+e+' | Passions: '+p+' | Valeurs: '+v+'. Identifie forces, compétences transférables et 3 pistes de reconversion.','Expert bilan compétences. Analyse bienveillante et précise en français.');
+}
+
+nav('accueil');
 </script>
 </body>
 </html>
